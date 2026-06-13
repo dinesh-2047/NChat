@@ -309,6 +309,7 @@ export default function ChatPage(){
         if(activeConv) await fetch(`/api/conversations/${activeConv.conversationId}`, { method: 'DELETE' });
         setActiveConv(null);
         setMessages([]);
+        setShowMobile('sidebar');
         fetchConvs();
       }catch{}
     }
