@@ -74,6 +74,9 @@ export function AuthProvider({ children }) {
     });
     const data = await res.json();
     if (res.ok) {
+      if (data.pendingApproval) {
+        return { success: true, pendingApproval: true, message: data.message };
+      }
       setUser(data.user);
       return { success: true };
     }

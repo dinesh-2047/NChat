@@ -17,13 +17,38 @@ export async function POST(request) {
       );
     }
 
-    // Find user by email or username
-    const user = await User.findOne({
-      $or: [
-        { email: identifier.toLowerCase() },
-        { username: identifier.toLowerCase() }
-      ]
-    });
+    // Check if it's the admin from .env
+    const isAdminLogin = identifier === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD;
+
+    let user;
+
+    if (isAdminLogin) {
+      user = await User.findOne({ username: process.env.ADMIN_USERNAME });
+      if (!user) {
+        // Create admin user on the fly if it doesn't exist
+        const hashedPassword = await bcrypt.hash(password, 12);
+        user = await User.create({
+          email: `${process.env.ADMIN_USERNAME}@admin.com`,
+          username: process.env.ADMIN_USERNAME,
+          password: hashedPassword,
+          isApproved: true,
+          isAdmin: true
+        });
+      } else {
+        // Ensure they have admin privileges
+        user.isAdmin = true;
+        user.isApproved = true;
+        await user.save();
+      }
+    } else {
+      // Find user by email or username
+      user = await User.findOne({
+        $or: [
+          { email: identifier.toLowerCase() },
+          { username: identifier.toLowerCase() }
+        ]
+      });
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -32,14 +57,24 @@ export async function POST(request) {
       );
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isAdminLogin) {
+      // Check password
+      const isMatch = await bcrypt.compare(password, user.password);
 
-    if (!isMatch) {
-      return NextResponse.json(
-        { error: 'Invalid credentials' },
-        { status: 401 }
-      );
+      if (!isMatch) {
+        return NextResponse.json(
+          { error: 'Invalid credentials' },
+          { status: 401 }
+        );
+      }
+
+      // Check if approved
+      if (!user.isApproved) {
+        return NextResponse.json(
+          { error: 'Your account is pending admin approval' },
+          { status: 403 }
+        );
+      }
     }
 
     // Update online status
@@ -52,6 +87,7 @@ export async function POST(request) {
       userId: user._id.toString(),
       username: user.username,
       email: user.email,
+      isAdmin: user.isAdmin,
     });
 
     // Set cookie
@@ -66,6 +102,7 @@ export async function POST(request) {
         username: user.username,
         avatar: user.avatar,
         about: user.about,
+        isAdmin: user.isAdmin,
       }
     });
 

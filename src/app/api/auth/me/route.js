@@ -33,6 +33,7 @@ export async function GET() {
         about: user.about,
         lastSeen: user.lastSeen,
         isOnline: user.isOnline,
+        isAdmin: user.isAdmin,
       }
     });
 
