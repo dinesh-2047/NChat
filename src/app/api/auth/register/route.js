@@ -70,26 +70,10 @@ export async function POST(request) {
       password: hashedPassword,
     });
 
-    // Create token
-    const token = signToken({
-      userId: user._id.toString(),
-      username: user.username,
-      email: user.email,
-    });
-
-    // Set cookie
-    const cookieStore = await cookies();
-    cookieStore.set(createAuthCookie(token));
-
     return NextResponse.json({
       success: true,
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        avatar: user.avatar,
-        about: user.about,
-      }
+      pendingApproval: true,
+      message: 'Registration successful! Your account is pending admin approval.'
     }, { status: 201 });
 
   } catch (error) {

@@ -342,6 +342,16 @@ export default function ChatPage(){
         <div className="sidebar-header">
           <h2>N://Chat</h2>
           <div className="sidebar-actions">
+            {user?.isAdmin && (
+              <button 
+                className="icon-btn" 
+                onClick={() => router.push('/admin')} 
+                title="Admin Console"
+                style={{ fontSize: '1rem' }}
+              >
+                👑
+              </button>
+            )}
             <button className="icon-btn" onClick={()=>setShowSearch(true)} title="New Chat">+</button>
             <button className="icon-btn" onClick={logout} title="Logout" style={{fontSize:'0.8rem'}}>⏻</button>
           </div>

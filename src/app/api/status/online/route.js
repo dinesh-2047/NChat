@@ -4,17 +4,28 @@ import User from '@/models/User';
 import { getAuthUser } from '@/lib/auth';
 
 // POST - Update heartbeat/online status
-export async function POST() {
+export async function POST(request) {
   try {
     const authUser = await getAuthUser();
     if (!authUser) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
+    let isOffline = false;
+    try {
+      const text = await request.text();
+      if (text) {
+        const body = JSON.parse(text);
+        if (body.offline) isOffline = true;
+      }
+    } catch (e) {
+      // ignore
+    }
+
     await connectDB();
 
     await User.findByIdAndUpdate(authUser.userId, {
-      isOnline: true,
+      isOnline: !isOffline,
       lastSeen: new Date(),
       lastHeartbeat: new Date(),
     });

@@ -10,6 +10,7 @@ export default function AuthPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { user, login, register } = useAuth();
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
     try {
       let result;
@@ -32,6 +34,11 @@ export default function AuthPage() {
       }
       if (!result.success) {
         setError(result.error);
+      } else if (result.pendingApproval) {
+        setSuccessMessage(result.message);
+        setIsLogin(true); // Switch to login tab so they can login later
+        setUsername('');
+        setPassword('');
       }
     } catch {
       setError('Something went wrong');
@@ -102,6 +109,7 @@ export default function AuthPage() {
           </button>
 
           {error && <p className="auth-error">⚠ {error}</p>}
+          {successMessage && <p className="auth-success" style={{ color: 'var(--accent)', fontSize: '0.85rem', fontWeight: 600, marginTop: '12px' }}>✓ {successMessage}</p>}
         </form>
       </div>
     </div>
